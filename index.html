@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Hệ thống tải tài liệu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    #uploadSection, #adminPanel {
+      margin-top: 30px;
+      border-top: 1px solid #ccc;
+      padding-top: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hệ thống quản lý tải tài liệu</h1>
+
+  <h2>Đăng nhập</h2>
+  <input type="text" id="username" placeholder="Tên đăng nhập">
+  <input type="password" id="password" placeholder="Mật khẩu">
+  <button onclick="dangNhap()">Đăng nhập</button>
+  <p id="loginStatus"></p>
+
+  <div id="uploadSection" style="display: none;">
+    <h2>Tải tài liệu</h2>
+    <input type="file" id="fileInput">
+    <p id="fileName">Chưa chọn file nào.</p>
+  </div>
+
+  <div id="adminPanel" style="display: none;">
+    <h2>Quản lý phê duyệt người dùng</h2>
+    <table id="userTable">
+      <tr><th>Tên người dùng</th><th>Trạng thái</th><th>Hành động</th></tr>
+    </table>
+  </div>
+
+  <script>
+    const users = [
+      { username: "admin", password: "admin123", role: "admin", approved: true },
+      { username: "user1", password: "123456", role: "user", approved: false },
+      { username: "user2", password: "abcdef", role: "user", approved: true }
+    ];
+
+    let currentUser = null;
+
+    function dangNhap() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const loginStatus = document.getElementById("loginStatus");
+      const uploadSection = document.getElementById("uploadSection");
+      const adminPanel = document.getElementById("adminPanel");
+
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        currentUser = user;
+        loginStatus.textContent = `Xin chào, ${username}!`;
+        loginStatus.style.color = "green";
+
+        if (user.role === "admin") {
+          hienThiBangDuyet();
+          adminPanel.style.display = "block";
+        } else {
+          if (user.approved) {
+            uploadSection.style.display = "block";
+          } else {
+            loginStatus.textContent += " Bạn cần được admin duyệt để tải file.";
+            loginStatus.style.color = "orange";
+            uploadSection.style.display = "none";
+          }
+        }
+      } else {
+        loginStatus.textContent = "Sai tên đăng nhập hoặc mật khẩu!";
+        loginStatus.style.color = "red";
+        uploadSection.style.display = "none";
+        adminPanel.style.display = "none";
+      }
+    }
+
+    function hienThiBangDuyet() {
+      const table = document.getElementById("userTable");
+      while (table.rows.length > 1) {
+        table.deleteRow(1);
+      }
+
+      users.forEach((u, index) => {
+        if (u.role === "user") {
+          const row = table.insertRow();
+          row.insertCell(0).textContent = u.username;
+          row.insertCell(1).textContent = u.approved ? "✅ Đã duyệt" : "⛔ Chưa duyệt";
+
+          const btnCell = row.insertCell(2);
+          const button = document.createElement("button");
+          button.textContent = u.approved ? "Thu hồi" : "Duyệt";
+          button.onclick = () => {
+            users[index].approved = !users[index].approved;
+            hienThiBangDuyet();
+          };
+          btnCell.appendChild(button);
+        }
+      });
+    }
+
+    const fileInput = document.getElementById("fileInput");
+    const fileNameDisplay = document.getElementById("fileName");
+
+    if (fileInput) {
+      fileInput.addEventListener("change", function () {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          fileNameDisplay.textContent = `Đã chọn: ${file.name}`;
+        } else {
+          fileNameDisplay.textContent = "Chưa chọn file nào.";
+        }
+      });
+    }
+  </script>
+</body>
+</html>
